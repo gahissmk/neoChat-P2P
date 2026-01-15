@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Bienvenue surNeoChat</title>
+<title>Bienvenue sur NeoChat</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="manifest" href="manifest.json">
 <script defer src="js/crypto.js"></script>
@@ -13,38 +13,51 @@
 <body>
 <div class="app">
 
-  <!-- HEADER -->
   <header class="header">
-    <span class="title">Bienvenue sur NeoChat - Salon : <span id="currentRoom">Salon</span></span>
-    <button onclick="location.href='salons.html'" class="btn-salon">🔄</button>
-    <button id="themeToggle" class="btn-salon">🌙</button>
+    <span class="title">Bienvenue sur NeoChat Enfoiré - Salon : <span id="currentRoom">Salon privé</span></span>
+    <button onclick="toggleTheme()" class="btn-salon" id="themeToggle">🌙</button>
   </header>
 
-  <!-- MAIN GRID -->
   <div class="main-grid">
 
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <h2>Utilisateurs en ligne</h2>
       <ul id="onlineUsers"></ul>
-      <h2>Salons</h2>
+      <h2>Salons privés</h2>
       <ul id="roomList"></ul>
+      <button onclick="createPrivateRoom()" class="btn-salon">➕ Nouveau salon</button>
     </aside>
 
-    <!-- CHAT -->
     <main class="chat">
       <div class="messages" id="messages"></div>
-
       <form id="chatForm">
         <input id="messageInput" placeholder="Message chiffré E2E…">
         <input type="file" id="imageInput" accept="image/*">
         <button>➤</button>
       </form>
-
       <div id="emojiPicker"></div>
     </main>
 
   </div>
 </div>
+
+<script>
+function toggleTheme(){
+  document.body.classList.toggle("light-theme");
+}
+
+function createPrivateRoom(){
+  let name = prompt("Nom du salon privé :");
+  if(!name) return;
+  let allowedUsers = prompt("Liste des utilisateurs autorisés (pseudo séparés par ,) :");
+  if(!allowedUsers) return;
+  let rooms = JSON.parse(localStorage.getItem("neo_private_rooms")||"{}");
+  rooms[name] = allowedUsers.split(",").map(u=>u.trim());
+  localStorage.setItem("neo_private_rooms", JSON.stringify(rooms));
+  alert("Salon privé créé !");
+  location.reload();
+}
+</script>
+
 </body>
 </html>

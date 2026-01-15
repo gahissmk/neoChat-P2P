@@ -1,7 +1,8 @@
 (async () => {
 
   /************* CONFIGURATION WS *************/
-  const WS_URL = "wss://6181440f-5ca8-445f-bad1-acad2e5af390-00-2ldq1tnmxdf3h.worf.replit.dev"; // <--- Mets ton WebSocket ici
+  // Remplace par ton URL Replit publique si tu veux chatter avec ton ami
+  const WS_URL = "wss://6181440f-5ca8-445f-bad1-acad2e5af390-00-2ldq1tnmxdf3h.worf.replit.dev";
   const ws = new WebSocket(WS_URL);
 
   /************* DOM *************/
@@ -12,7 +13,7 @@
   const emojiPicker = document.getElementById("emojiPicker");
   const onlineList = document.getElementById("onlineUsers");
   const roomList = document.getElementById("roomList");
-  const currentRoom = localStorage.getItem("neochat_room") || "Salon";
+  const currentRoom = localStorage.getItem("neochat_room") || "Salon privé";
   document.getElementById("currentRoom").textContent = currentRoom;
 
   /************* UTILISATEUR *************/
@@ -27,9 +28,17 @@
   const oldMessages = JSON.parse(localStorage.getItem(historyKey) || "[]");
   oldMessages.forEach(m => addMessage(m.text, m.type, m.user, m.time, false));
 
+  /************* PRIVATE ROOMS *************/
+  const privateRooms = JSON.parse(localStorage.getItem("neo_private_rooms") || "{}");
+  if(privateRooms[currentRoom] && !privateRooms[currentRoom].includes(username)) {
+    alert("❌ Vous n'êtes pas autorisé à accéder à ce salon privé !");
+    location.href = "salons.html";
+  }
+
   /************* UTILISATEURS & SALONS *************/
-  const onlineUsers = new Map(); // user => avatar
-  const salons = new Set([currentRoom]); // salon actuel
+  const onlineUsers = new Map();
+  const salons = new Set([currentRoom]);
+  Object.keys(privateRooms).forEach(r => salons.add(r));
 
   function updateOnlineSidebar(){
     onlineList.innerHTML = "";
@@ -46,6 +55,10 @@
       const li = document.createElement("li");
       li.textContent = salon;
       li.onclick = () => {
+        if(privateRooms[salon] && !privateRooms[salon].includes(username)){
+          alert("❌ Salon privé : accès refusé");
+          return;
+        }
         localStorage.setItem("neochat_room", salon);
         location.reload();
       };
@@ -56,7 +69,13 @@
   /************* WS EVENTS *************/
   ws.onopen = () => {
     console.log("✅ WebSocket connecté");
-    ws.send(JSON.stringify({ type:"presence", user:username, avatar:generateAvatar(username), online:true, room:currentRoom }));
+    ws.send(JSON.stringify({
+      type:"presence",
+      user:username,
+      avatar:generateAvatar(username),
+      online:true,
+      room:currentRoom
+    }));
   };
 
   ws.onmessage = async event => {
@@ -65,24 +84,20 @@
     let msg;
     try { msg = JSON.parse(data); } catch { return; }
 
-    // Messages présence
+    // Présence
     if(msg.type === "presence"){
-      if(msg.online){
-        onlineUsers.set(msg.user, msg.avatar);
-        salons.add(msg.room);
-      } else {
-        onlineUsers.delete(msg.user);
-      }
+      if(msg.online) onlineUsers.set(msg.user,msg.avatar);
+      else onlineUsers.delete(msg.user);
       updateOnlineSidebar();
       updateRoomList();
       return;
     }
 
-    // Messages classiques
+    // Message classique
     if(msg.sender === myId) return;
     try {
       const text = await decrypt(msg.payload);
-      if(msg.msgType === "image") addImageMessage(text,"friend",msg.user,msg.time,true);
+      if(msg.msgType==="image") addImageMessage(text,"friend",msg.user,msg.time,true);
       else addMessage(text,"friend",msg.user,msg.time,true);
       playNotification();
     } catch { console.warn("Message non déchiffrable"); }
@@ -125,7 +140,7 @@
     }
   }
 
-  /************* AJOUTER MESSAGE AU DOM *************/
+  /************* AJOUT AU DOM *************/
   function addMessage(text,who,user,time,save){
     const div = document.createElement("div");
     div.className="msg "+who;
@@ -140,7 +155,7 @@
     messages.scrollTop = messages.scrollHeight;
     if(save){
       const history = JSON.parse(localStorage.getItem(historyKey)||"[]");
-      history.push({text, type:who==="me"?"text":"friend", user, time});
+      history.push({text,type:who==="me"?"text":"friend",user,time});
       localStorage.setItem(historyKey,JSON.stringify(history));
     }
   }
