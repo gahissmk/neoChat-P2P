@@ -1,6 +1,11 @@
-// =========================
-// VARIABLES GLOBALES
-// =========================
+// ---------------------------
+// NeoChat WAW++ – app.js
+// ---------------------------
+
+// Assure que ce script est chargé comme module
+// <script type="module" src="js/app.js"></script>
+
+// Variables globales
 const username = localStorage.getItem("neochat_session");
 if(!username) location.href = "login.html";
 
@@ -14,32 +19,29 @@ const messageInput = document.getElementById("messageInput");
 const chatForm = document.getElementById("chatForm");
 const typingStatus = document.getElementById("typingStatus");
 
-// =========================
+// ---------------------------
 // WebSocket
-// =========================
-// REMPLACE avec ton URL WS publique si tu veux parler sur mobile
+// ---------------------------
+// Remplace par ton URL publique WebSocket
 const ws = new WebSocket("wss://6181440f-5ca8-445f-bad1-acad2e5af390-00-2ldq1tnmxdf3h.worf.replit.dev");
 
 ws.onopen = () => console.log("✅ WebSocket connecté");
+ws.onerror = e => console.log("❌ WebSocket erreur :", e);
 
-// =========================
-// SON ET VIBRATION
-// =========================
-// Son notification intégré en Base64 (fonctionne sans fichier)
+// ---------------------------
+// Son notification + vibration
+// ---------------------------
 const notifSound = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
 notifSound.volume = 0.2;
 
-
 function notifyUser(){
   notifSound.play().catch(()=>{});
-  if("vibrate" in navigator){
-    navigator.vibrate(150);
-  }
+  if("vibrate" in navigator) navigator.vibrate(150);
 }
 
-// =========================
-// MESSAGES ÉPHÉMÈRES
-// =========================
+// ---------------------------
+// Messages éphémères
+// ---------------------------
 function autoDeleteMessage(row, seconds=10){
   setTimeout(() => {
     if(row.parentNode){
@@ -50,9 +52,9 @@ function autoDeleteMessage(row, seconds=10){
   }, seconds * 1000);
 }
 
-// =========================
-// AJOUT REACTIONS + ÉPINGLÉ
-// =========================
+// ---------------------------
+// Ajout réactions
+// ---------------------------
 function addReactions(row, messageId){
   const reactionsDiv = document.createElement("div");
   reactionsDiv.className = "reactions";
@@ -80,48 +82,59 @@ function addReactions(row, messageId){
   row.querySelector(".message-content").appendChild(reactionsDiv);
 }
 
-// =========================
-// ENVOI DE MESSAGE
-// =========================
+// ---------------------------
+// Envoi message
+// ---------------------------
 chatForm.onsubmit = async e => {
   e.preventDefault();
   if(!messageInput.value) return;
 
-  const encMsg = await encrypt(messageInput.value);
-  const msgId = Date.now(); // id unique basé sur timestamp
+  try {
+    const encMsg = await encrypt(messageInput.value);
+    const msgId = Date.now();
 
-  if(ws.readyState === WebSocket.OPEN){
-    ws.send(JSON.stringify({
-      type: "msg",
-      user: username,
-      room,
-      messageId: msgId,
-      data: encMsg
-    }));
-    messageInput.value = "";
-  } else {
-    alert("Connexion WebSocket pas encore prête !");
+    if(ws.readyState === WebSocket.OPEN){
+      ws.send(JSON.stringify({
+        type: "msg",
+        user: username,
+        room,
+        messageId: msgId,
+        data: encMsg
+      }));
+      messageInput.value = "";
+    } else {
+      console.log("WebSocket pas encore prête !");
+      alert("Connexion pas encore prête, réessaie");
+    }
+  } catch(err){
+    console.log("Erreur encrypt :", err);
   }
 };
 
-// =========================
-// TYPING INDICATOR
-// =========================
+// ---------------------------
+// Typing indicator
+// ---------------------------
 messageInput.oninput = () => {
   if(ws.readyState === WebSocket.OPEN){
     ws.send(JSON.stringify({ type: "typing", user: username, room }));
   }
 };
 
-// =========================
-// RÉCEPTION DE MESSAGE
-// =========================
+// ---------------------------
+// Réception messages
+// ---------------------------
 ws.onmessage = async e => {
   let data;
-  try { data = JSON.parse(e.data); } catch(err){ return; }
+  try { 
+    data = JSON.parse(e.data); 
+  } catch(err){ 
+    console.log("Erreur JSON.parse :", err, e.data);
+    return; 
+  }
+
   if(data.room !== room) return;
 
-  // Typing indicator
+  // Typing
   if(data.type === "typing"){
     typingStatus.textContent = data.user + " écrit...";
     setTimeout(()=> typingStatus.textContent = "", 1500);
@@ -130,10 +143,16 @@ ws.onmessage = async e => {
 
   // Message normal
   if(data.type === "msg"){
-    const text = await decrypt(data.data);
+    let text;
+    try {
+      text = await decrypt(data.data);
+    } catch(err){
+      console.log("Erreur decrypt :", err, data.data);
+      text = "[Erreur de décrypt]";
+    }
 
     const row = document.createElement("div");
-    row.className = "message-row" + (data.user === username ? " me" : "");
+    row.className = "message-row" + (data.user===username?" me":"");
     row.dataset.id = data.messageId;
 
     const avatar = document.createElement("div");
@@ -148,7 +167,7 @@ ws.onmessage = async e => {
     userEl.textContent = data.user;
 
     const bubble = document.createElement("div");
-    bubble.className = "message" + (data.user === username ? " me" : "");
+    bubble.className = "message" + (data.user===username?" me":"");
     bubble.textContent = text;
 
     content.appendChild(userEl);
@@ -160,15 +179,13 @@ ws.onmessage = async e => {
     messages.appendChild(row);
     messages.scrollTop = messages.scrollHeight;
 
-    // Avatars + reactions + messages éphémères
     addReactions(row, data.messageId);
     autoDeleteMessage(row, 10);
 
-    // Notification si ce n'est pas moi
     if(data.user !== username) notifyUser();
   }
 
-  // Réception des réactions
+  // Réaction
   if(data.type === "reaction"){
     const row = document.querySelector(`[data-id='${data.messageId}']`);
     if(!row) return;
@@ -185,9 +202,9 @@ ws.onmessage = async e => {
   }
 };
 
-// =========================
-// LOGOUT
-// =========================
+// ---------------------------
+// Logout
+// ---------------------------
 function logout(){
   localStorage.removeItem("neochat_session");
   localStorage.removeItem("neochat_room");
