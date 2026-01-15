@@ -5,9 +5,12 @@ const messages = document.getElementById("messages");
 const form = document.getElementById("chatForm");
 const input = document.getElementById("messageInput");
 
-// 🔑 DEMANDE LE CODE DU SALON
-const roomCode = prompt("Code du salon (partagé avec ton ami) :");
-initCryptoWithRoom(roomCode);
+// 🆔 identifiant unique du client
+const myId = crypto.randomUUID();
+
+// 🔑 code salon (doit être IDENTIQUE chez ton ami)
+const roomCode = prompt("Code du salon (le même pour tous) :");
+await initCryptoWithRoom(roomCode);
 
 ws.onopen = () => {
   console.log("✅ WebSocket connecté");
@@ -17,18 +20,21 @@ ws.onmessage = async (event) => {
   let data = event.data;
   if (data instanceof Blob) data = await data.text();
 
-  let parsed;
+  let msg;
   try {
-    parsed = JSON.parse(data);
+    msg = JSON.parse(data);
   } catch {
     return;
   }
 
+  // ❌ on ignore ses propres messages
+  if (msg.sender === myId) return;
+
   try {
-    const text = await decrypt(parsed);
+    const text = await decrypt(msg.payload);
     addMessage(text, "friend");
-  } catch (e) {
-    console.error("Erreur déchiffrement");
+  } catch {
+    console.warn("Message impossible à déchiffrer (clé différente)");
   }
 };
 
@@ -38,8 +44,13 @@ form.addEventListener("submit", async e => {
 
   const encrypted = await encrypt(input.value);
 
+  const message = {
+    sender: myId,
+    payload: encrypted
+  };
+
   if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(encrypted));
+    ws.send(JSON.stringify(message));
     addMessage(input.value, "me");
     input.value = "";
   }
