@@ -5,6 +5,8 @@ body { margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-ser
 
 header { padding:14px; background:linear-gradient(90deg,#38bdf8,#6366f1); color:#020617; font-weight:bold; text-align:center; }
 
+#onlineUsers { font-size:14px; padding:8px; background:#1e293b; color:#38bdf8; }
+
 #messages { flex:1; padding:12px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
 
 .msg { max-width:75%; padding:10px 14px; border-radius:14px; font-size:14px; word-wrap:break-word; animation:fadeIn 0.2s ease; }
