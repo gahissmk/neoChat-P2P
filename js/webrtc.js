@@ -4,7 +4,7 @@ let channel;
 const user = localStorage.getItem("user") || "Anon";
 
 // Remplace par l'URL de ton serveur Replit
-const ws = new WebSocket("wss://replit.com/@gahisse822/NeoChat-WS?v=1");
+const ws = new WebSocket("wss://6181440f-5ca8-445f-bad1-acad2e5af390-00-2ldq1tnmxdf3h.worf.replit.dev");
 
 pc.ondatachannel = e => setupChannel(e.channel);
 
