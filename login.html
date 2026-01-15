@@ -9,14 +9,14 @@
 
 <body class="auth">
 <div class="auth-box">
-<h1>NeoChat</h1>
-<input id="username" placeholder="Ton pseudo">
-<button onclick="go()">Entrer</button>
+  <h1>NeoChat</h1>
+  <input id="username" placeholder="Ton pseudo">
+  <button onclick="go()">Entrer</button>
 </div>
 
 <script>
 function go(){
-  if(!username.value) return;
+  if(!username.value) return alert("Entre ton pseudo !");
   localStorage.setItem("user", username.value);
   location.href = "index.html";
 }
