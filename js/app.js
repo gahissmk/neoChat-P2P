@@ -5,43 +5,43 @@ const messages = document.getElementById("messages");
 const form = document.getElementById("chatForm");
 const input = document.getElementById("messageInput");
 
+// 🔑 DEMANDE LE CODE DU SALON
+const roomCode = prompt("Code du salon (partagé avec ton ami) :");
+initCryptoWithRoom(roomCode);
+
 ws.onopen = () => {
   console.log("✅ WebSocket connecté");
 };
 
 ws.onmessage = async (event) => {
   let data = event.data;
-
-  // ✅ CORRECTION ICI
-  if (data instanceof Blob) {
-    data = await data.text();
-  }
+  if (data instanceof Blob) data = await data.text();
 
   let parsed;
   try {
     parsed = JSON.parse(data);
-  } catch (e) {
-    console.error("Message invalide :", data);
+  } catch {
     return;
   }
 
-  const text = await decrypt(parsed);
-  addMessage(text, "friend");
+  try {
+    const text = await decrypt(parsed);
+    addMessage(text, "friend");
+  } catch (e) {
+    console.error("Erreur déchiffrement");
+  }
 };
 
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", async e => {
   e.preventDefault();
   if (!input.value.trim()) return;
 
   const encrypted = await encrypt(input.value);
 
-  // sécurité : attendre que le socket soit prêt
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(encrypted));
     addMessage(input.value, "me");
     input.value = "";
-  } else {
-    alert("Connexion au serveur en cours...");
   }
 });
 

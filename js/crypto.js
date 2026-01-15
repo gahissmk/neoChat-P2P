@@ -2,15 +2,36 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 let key;
 
-async function initCrypto(){
-  key = await crypto.subtle.generateKey(
+// dérive une clé à partir d’un mot de passe commun
+async function deriveKey(password) {
+  const baseKey = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: enc.encode("neochat-salt"),
+      iterations: 100000,
+      hash: "SHA-256"
+    },
+    baseKey,
     { name: "AES-GCM", length: 256 },
     false,
     ["encrypt", "decrypt"]
   );
 }
 
-async function encrypt(text){
+// à appeler AVANT le chat
+async function initCryptoWithRoom(roomCode) {
+  key = await deriveKey(roomCode);
+}
+
+async function encrypt(text) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const data = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
@@ -20,13 +41,11 @@ async function encrypt(text){
   return { iv: [...iv], data: [...new Uint8Array(data)] };
 }
 
-async function decrypt(obj){
-  const decrypted = await crypto.subtle.decrypt(
+async function decrypt(obj) {
+  const res = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: new Uint8Array(obj.iv) },
     key,
     new Uint8Array(obj.data)
   );
-  return dec.decode(decrypted);
+  return dec.decode(res);
 }
-
-initCrypto();
