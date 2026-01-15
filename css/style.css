@@ -1,36 +1,21 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
 body{background:#f0f2f5;color:#111}
 
+/* LOGIN */
+.auth{display:flex;justify-content:center;align-items:center;height:100vh;background:#f0f2f5}
+.auth-box{background:white;padding:30px;border-radius:15px;box-shadow:0 4px 10px rgba(0,0,0,0.2);display:flex;flex-direction:column;gap:10px;text-align:center}
+.auth-box h1{color:#1877f2}
+.auth-box input{padding:10px;border-radius:20px;border:1px solid #ccc;width:200px}
+.auth-box button{padding:10px;border:none;border-radius:20px;background:#1877f2;color:white;cursor:pointer}
+
+/* CHAT */
 .app{display:flex;flex-direction:column;height:100vh}
-
-header{
-  padding:10px;
-  display:flex;
-  justify-content:space-between;
-  background:#1877f2;color:white;font-weight:bold;
-}
-
-.connect{padding:10px;display:flex;flex-direction:column;gap:5px}
-
-.info-text{font-size:14px;opacity:.8}
-.signal-box{display:flex;gap:5px;margin-top:5px}
-.btn-box{display:flex;gap:5px;margin-top:5px}
-
-input{
-  flex:1;background:#fff;color:black;border:1px solid #ccc;border-radius:20px;padding:10px;width:100%;
-}
-
-button{
-  background:#1877f2;border:none;padding:8px 12px;border-radius:20px;color:white;cursor:pointer;
-}
-
+header{padding:10px;display:flex;justify-content:space-between;background:#1877f2;color:white;font-weight:bold}
 .messages{flex:1;padding:10px;overflow-y:auto;background:#e5ddd5}
-
 .msg{margin-bottom:8px;padding:6px 10px;border-radius:12px;max-width:75%;word-wrap: break-word}
-
 .me{background:#dcf8c6;color:black;margin-left:auto}
 .other{background:#fff;color:black;margin-right:auto}
 .system{color:#555;font-style:italic;text-align:center}
-
 .chat-input{display:flex;padding:10px;border-top:1px solid #ccc}
 .chat-input input{flex:1;padding:10px;border-radius:20px;border:none}
+.chat-input button{background:#1877f2;border:none;padding:8px 12px;border-radius:20px;color:white;cursor:pointer}
