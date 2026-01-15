@@ -1,5 +1,4 @@
 const usersKey = 'neochat_users';
-const sessionKey = 'neochat_session';
 const currentUserKey = 'neochat_user';
 
 function users() { return JSON.parse(localStorage.getItem(usersKey) || '{}'); }
@@ -22,7 +21,6 @@ function login() {
   const p = loginPass.value;
   const us = users();
   if (!us[u] || us[u].pass !== btoa(p)) return alert("Erreur pseudo ou mot de passe");
-  localStorage.setItem(sessionKey, u);
   localStorage.setItem(currentUserKey, u);
   location.href = 'salons.html';
 }

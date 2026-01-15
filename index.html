@@ -14,29 +14,37 @@
 <div class="app">
 
   <!-- HEADER -->
-  <header>
-    NeoChat - <span id="currentRoom">Salon</span>
-    <button onclick="location.href='salons.html'" style="float:right; background:#38bdf8; border:none; border-radius:6px; padding:4px 8px; cursor:pointer;">
-      🔄 Changer de salon
-    </button>
+  <header class="header">
+    <span class="title">NeoChat - <span id="currentRoom">Salon</span></span>
+    <button onclick="location.href='salons.html'" class="btn-salon">🔄 Salons</button>
+    <button id="themeToggle" class="btn-salon">🌙</button>
   </header>
 
-  <!-- STATUS EN LIGNE -->
-  <div id="onlineUsers" style="padding:8px; font-size:14px; background:#1e293b; color:#38bdf8;">En ligne : </div>
+  <!-- MAIN GRID -->
+  <div class="main-grid">
 
-  <!-- MESSAGES -->
-  <div class="messages" id="messages"></div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <h2>Utilisateurs en ligne</h2>
+      <ul id="onlineUsers"></ul>
+      <h2>Salons</h2>
+      <ul id="roomList"></ul>
+    </aside>
 
-  <!-- FORMULAIRE CHAT -->
-  <form id="chatForm">
-    <input id="messageInput" placeholder="Message chiffré E2E…">
-    <input type="file" id="imageInput" accept="image/*">
-    <button>➤</button>
-  </form>
+    <!-- CHAT -->
+    <main class="chat">
+      <div class="messages" id="messages"></div>
 
-  <!-- EMOJI PICKER -->
-  <div id="emojiPicker" style="padding:8px; background:#1e293b; display:flex; flex-wrap:wrap;"></div>
+      <form id="chatForm">
+        <input id="messageInput" placeholder="Message chiffré E2E…">
+        <input type="file" id="imageInput" accept="image/*">
+        <button>➤</button>
+      </form>
 
+      <div id="emojiPicker"></div>
+    </main>
+
+  </div>
 </div>
 </body>
 </html>
