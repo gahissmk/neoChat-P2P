@@ -2,17 +2,37 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Se connecter — NeoChat</title>
+<title>NeoChat</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<script defer src="js/crypto.js"></script>
+<script defer src="js/emojis.js"></script>
+<script defer src="js/app.js"></script>
+<script defer src="js/pwa.js"></script>
 </head>
-<body class="auth-body">
-<div class="auth-box">
-<h1>NeoChat</h1>
-<input id="loginUser" placeholder="Pseudo">
-<input id="loginPass" type="password" placeholder="Mot de passe">
-<button onclick="login()">Se connecter</button>
-<a href="register.html">Pas encore inscrit ?</a>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    NeoChat - <span id="currentRoom">Salon</span>
+    <button onclick="location.href='salons.html'" style="float:right; background:#38bdf8; border:none; border-radius:6px; padding:4px 8px; cursor:pointer;">
+      🔄 Changer de salon
+    </button>
+  </header>
+
+  <!-- MESSAGES -->
+  <div class="messages" id="messages"></div>
+
+  <!-- FORMULAIRE CHAT -->
+  <form id="chatForm">
+    <input id="messageInput" placeholder="Message chiffré E2E…">
+    <button>➤</button>
+  </form>
+
+  <!-- EMOJI PICKER -->
+  <div id="emojiPicker" style="padding:8px; background:#1e293b; display:flex; flex-wrap:wrap;"></div>
+
 </div>
-<script src="js/auth.js"></script>
 </body>
 </html>
