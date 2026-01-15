@@ -9,17 +9,17 @@
 <script defer src="js/app.js"></script>
 <script defer src="js/pwa.js"></script>
 </head>
-
 <body>
 <div class="app">
-  <header>💬 NeoChat</header>
-
-  <div id="messages"></div>
-
-  <form id="chatForm">
-    <input id="messageInput" placeholder="Écris ton message…" autocomplete="off">
-    <button>➤</button>
-  </form>
+<header>
+  NeoChat
+  <button onclick="location.reload()" style="float:right">🔄</button>
+</header>
+<div class="messages" id="messages"></div>
+<form id="chatForm">
+  <input id="messageInput" placeholder="Message chiffré E2E…">
+  <button>➤</button>
+</form>
 </div>
 </body>
 </html>

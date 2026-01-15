@@ -2,15 +2,17 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Connexion - NeoChat</title>
+<title>Se connecter — NeoChat</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-
-<body class="center">
-<div class="box">
-  <h1>NeoChat</h1>
-  <input placeholder="Ton pseudo">
-  <a href="index.html">Entrer</a>
+<body class="auth-body">
+<div class="auth-box">
+<h1>NeoChat</h1>
+<input id="loginUser" placeholder="Pseudo">
+<input id="loginPass" type="password" placeholder="Mot de passe">
+<button onclick="login()">Se connecter</button>
+<a href="register.html">Pas encore inscrit ?</a>
 </div>
+<script src="js/auth.js"></script>
 </body>
 </html>

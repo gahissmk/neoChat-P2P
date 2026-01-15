@@ -7,50 +7,40 @@
   const form = document.getElementById("chatForm");
   const input = document.getElementById("messageInput");
 
-  // Identifiant unique
   const myId = crypto.randomUUID();
-
-  // Infos utilisateur
   const username = prompt("Ton pseudo :") || "Anonyme";
-  const roomCode = prompt("Code du salon (le même pour tous) :");
 
-  // Initialisation crypto avec code commun
+  // 🔹 Récupérer le salon choisi
+  const roomCode = localStorage.getItem("neochat_room") || "default";
+
+  document.getElementById("currentRoom").textContent = roomCode;
+
   await initCryptoWithRoom(roomCode);
 
-  // Historique local
   const historyKey = "neochat_history_" + roomCode;
-  const oldMessages = JSON.parse(localStorage.getItem(historyKey) || "[]");
+  const oldMessages = JSON.parse(localStorage.getItem(historyKey)||"[]");
   oldMessages.forEach(m => addMessage(m.text, m.who, m.user, m.time, false));
 
-  ws.onopen = () => {
-    console.log("✅ WebSocket connecté");
-  };
+  ws.onopen = () => console.log("✅ WebSocket connecté");
 
-  ws.onmessage = async (event) => {
+  ws.onmessage = async event => {
     let data = event.data;
     if (data instanceof Blob) data = await data.text();
 
     let msg;
-    try {
-      msg = JSON.parse(data);
-    } catch {
-      return;
-    }
+    try { msg = JSON.parse(data); } catch { return; }
 
-    // Ignore ses propres messages
-    if (msg.sender === myId) return;
+    if(msg.sender === myId) return;
 
     try {
       const text = await decrypt(msg.payload);
-      addMessage(text, "friend", msg.user, msg.time, true);
-    } catch {
-      console.warn("Message non déchiffrable");
-    }
+      addMessage(text,"friend",msg.user,msg.time,true);
+    } catch { console.warn("Message non déchiffrable"); }
   };
 
   form.addEventListener("submit", async e => {
     e.preventDefault();
-    if (!input.value.trim()) return;
+    if(!input.value.trim()) return;
 
     const encrypted = await encrypt(input.value);
 
@@ -58,36 +48,37 @@
       sender: myId,
       user: username,
       time: Date.now(),
-      payload: encrypted
+      payload: encrypted,
+      room: roomCode
     };
 
-    if (ws.readyState === WebSocket.OPEN) {
+    if(ws.readyState === WebSocket.OPEN){
       ws.send(JSON.stringify(message));
-      addMessage(input.value, "me", username, message.time, true);
-      input.value = "";
+      addMessage(input.value,"me",username,message.time,true);
+      input.value="";
     }
   });
 
-  function addMessage(text, who, user, time, save) {
+  function addMessage(text, who, user, time, save){
     const div = document.createElement("div");
-    div.className = "msg " + who;
+    div.className="msg "+who;
 
     const content = document.createElement("div");
-    content.textContent = text;
+    content.textContent=text;
 
     const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.textContent = `${user} • ${new Date(time).toLocaleTimeString()}`;
+    meta.className="meta";
+    meta.textContent=`${user} • ${new Date(time).toLocaleTimeString()}`;
 
     div.appendChild(content);
     div.appendChild(meta);
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
 
-    if (save) {
-      const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
-      history.push({ text, who, user, time });
-      localStorage.setItem(historyKey, JSON.stringify(history));
+    if(save){
+      const history = JSON.parse(localStorage.getItem(historyKey)||"[]");
+      history.push({text,who,user,time});
+      localStorage.setItem(historyKey,JSON.stringify(history));
     }
   }
 

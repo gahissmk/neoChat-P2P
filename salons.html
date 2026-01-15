@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NeoChat — Choisir un salon</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+<div class="auth-box">
+<h1>NeoChat</h1>
+<input id="roomName" placeholder="Nom du salon">
+<button onclick="joinRoom()">Rejoindre / Créer</button>
+<a href="login.html">Déconnexion</a>
+</div>
+<script>
+function joinRoom() {
+  const name = document.getElementById("roomName").value.trim();
+  if(!name) return alert("Entrez un nom de salon !");
+  localStorage.setItem("neochat_room", name);
+  location.href = "index.html";
+}
+</script>
+</body>
+</html>
