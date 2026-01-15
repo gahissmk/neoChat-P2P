@@ -1,4 +1,3 @@
-/* Style WAW++ pour PC et mobile */
 body{margin:0;font-family:sans-serif;background:#020617;color:#fff;}
 .neon{background:rgba(0,0,0,0.6);box-shadow:0 0 10px #38bdf8;border-radius:10px;}
 .app{display:flex;height:100vh;}
@@ -17,7 +16,6 @@ body{margin:0;font-family:sans-serif;background:#020617;color:#fff;}
 .message{background:#111;padding:8px 12px;border-radius:8px;word-break:break-word;}
 .message.me{background:#38bdf8;color:#000;}
 .typing{font-style:italic;color:#38bdf8;margin:5px;}
-/* Reactions */
 .reactions{display:flex;gap:6px;margin-top:4px;}
 .reaction{cursor:pointer;font-size:14px;user-select:none;transition:transform 0.1s;}
 .reaction:hover{transform:scale(1.3);}
