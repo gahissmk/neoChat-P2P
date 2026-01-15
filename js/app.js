@@ -7,10 +7,8 @@
   const form = document.getElementById("chatForm");
   const input = document.getElementById("messageInput");
 
-  // identifiant unique
   const myId = crypto.randomUUID();
 
-  // code salon (identique pour ton ami)
   const roomCode = prompt("Code du salon (le même pour tous) :");
   await initCryptoWithRoom(roomCode);
 
@@ -29,14 +27,13 @@
       return;
     }
 
-    // ignorer ses propres messages
     if (msg.sender === myId) return;
 
     try {
       const text = await decrypt(msg.payload);
       addMessage(text, "friend");
     } catch {
-      console.warn("Impossible de déchiffrer le message");
+      console.warn("Message non déchiffrable");
     }
   };
 
