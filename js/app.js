@@ -1,196 +1,195 @@
-(async () => {
+// =========================
+// VARIABLES GLOBALES
+// =========================
+const username = localStorage.getItem("neochat_session");
+if(!username) location.href = "login.html";
 
-  /************* CONFIGURATION WS *************/
-  // Remplace par ton URL Replit publique si tu veux chatter avec ton ami
-  const WS_URL = "wss://6181440f-5ca8-445f-bad1-acad2e5af390-00-2ldq1tnmxdf3h.worf.replit.dev";
-  const ws = new WebSocket(WS_URL);
+const room = localStorage.getItem("neochat_room") || "public";
 
-  /************* DOM *************/
-  const messages = document.getElementById("messages");
-  const form = document.getElementById("chatForm");
-  const input = document.getElementById("messageInput");
-  const imageInput = document.getElementById("imageInput");
-  const emojiPicker = document.getElementById("emojiPicker");
-  const onlineList = document.getElementById("onlineUsers");
-  const roomList = document.getElementById("roomList");
-  const currentRoom = localStorage.getItem("neochat_room") || "Salon privé";
-  document.getElementById("currentRoom").textContent = currentRoom;
+const currentUser = document.getElementById("currentUser");
+currentUser.textContent = username;
 
-  /************* UTILISATEUR *************/
-  const myId = crypto.randomUUID();
-  const username = localStorage.getItem('neochat_user') || "Anonyme";
+const messages = document.getElementById("messages");
+const messageInput = document.getElementById("messageInput");
+const chatForm = document.getElementById("chatForm");
+const typingStatus = document.getElementById("typingStatus");
 
-  /************* CRYPTO *************/
-  await initCryptoWithRoom(currentRoom);
+// =========================
+// WebSocket
+// =========================
+// REMPLACE avec ton URL WS publique si tu veux parler sur mobile
+const ws = new WebSocket("wss://6181440f-5ca8-445f-bad1-acad2e5af390-00-2ldq1tnmxdf3h.worf.replit.dev");
 
-  /************* HISTORIQUE *************/
-  const historyKey = "neochat_history_" + currentRoom;
-  const oldMessages = JSON.parse(localStorage.getItem(historyKey) || "[]");
-  oldMessages.forEach(m => addMessage(m.text, m.type, m.user, m.time, false));
+ws.onopen = () => console.log("✅ WebSocket connecté");
 
-  /************* PRIVATE ROOMS *************/
-  const privateRooms = JSON.parse(localStorage.getItem("neo_private_rooms") || "{}");
-  if(privateRooms[currentRoom] && !privateRooms[currentRoom].includes(username)) {
-    alert("❌ Vous n'êtes pas autorisé à accéder à ce salon privé !");
-    location.href = "salons.html";
+// =========================
+// SON ET VIBRATION
+// =========================
+// Son notification intégré en Base64 (fonctionne sans fichier)
+const notifSound = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
+notifSound.volume = 0.2;
+
+
+function notifyUser(){
+  notifSound.play().catch(()=>{});
+  if("vibrate" in navigator){
+    navigator.vibrate(150);
   }
+}
 
-  /************* UTILISATEURS & SALONS *************/
-  const onlineUsers = new Map();
-  const salons = new Set([currentRoom]);
-  Object.keys(privateRooms).forEach(r => salons.add(r));
+// =========================
+// MESSAGES ÉPHÉMÈRES
+// =========================
+function autoDeleteMessage(row, seconds=10){
+  setTimeout(() => {
+    if(row.parentNode){
+      row.style.transition = "opacity 0.5s ease";
+      row.style.opacity = "0";
+      setTimeout(()=> row.remove(), 500);
+    }
+  }, seconds * 1000);
+}
 
-  function updateOnlineSidebar(){
-    onlineList.innerHTML = "";
-    onlineUsers.forEach((avatar,user)=>{
-      const li = document.createElement("li");
-      li.textContent = `${avatar} ${user}`;
-      onlineList.appendChild(li);
-    });
-  }
+// =========================
+// AJOUT REACTIONS + ÉPINGLÉ
+// =========================
+function addReactions(row, messageId){
+  const reactionsDiv = document.createElement("div");
+  reactionsDiv.className = "reactions";
 
-  function updateRoomList(){
-    roomList.innerHTML = "";
-    salons.forEach(salon=>{
-      const li = document.createElement("li");
-      li.textContent = salon;
-      li.onclick = () => {
-        if(privateRooms[salon] && !privateRooms[salon].includes(username)){
-          alert("❌ Salon privé : accès refusé");
-          return;
-        }
-        localStorage.setItem("neochat_room", salon);
-        location.reload();
-      };
-      roomList.appendChild(li);
-    });
-  }
+  ["❤️","😂","🔥"].forEach(emoji=>{
+    const btn = document.createElement("span");
+    btn.className = "reaction";
+    btn.textContent = emoji;
 
-  /************* WS EVENTS *************/
-  ws.onopen = () => {
-    console.log("✅ WebSocket connecté");
+    btn.onclick = () => {
+      if(ws.readyState === WebSocket.OPEN){
+        ws.send(JSON.stringify({
+          type: "reaction",
+          user: username,
+          emoji,
+          messageId,
+          room
+        }));
+      }
+    }
+
+    reactionsDiv.appendChild(btn);
+  });
+
+  row.querySelector(".message-content").appendChild(reactionsDiv);
+}
+
+// =========================
+// ENVOI DE MESSAGE
+// =========================
+chatForm.onsubmit = async e => {
+  e.preventDefault();
+  if(!messageInput.value) return;
+
+  const encMsg = await encrypt(messageInput.value);
+  const msgId = Date.now(); // id unique basé sur timestamp
+
+  if(ws.readyState === WebSocket.OPEN){
     ws.send(JSON.stringify({
-      type:"presence",
-      user:username,
-      avatar:generateAvatar(username),
-      online:true,
-      room:currentRoom
-    }));
-  };
-
-  ws.onmessage = async event => {
-    let data = event.data;
-    if (data instanceof Blob) data = await data.text();
-    let msg;
-    try { msg = JSON.parse(data); } catch { return; }
-
-    // Présence
-    if(msg.type === "presence"){
-      if(msg.online) onlineUsers.set(msg.user,msg.avatar);
-      else onlineUsers.delete(msg.user);
-      updateOnlineSidebar();
-      updateRoomList();
-      return;
-    }
-
-    // Message classique
-    if(msg.sender === myId) return;
-    try {
-      const text = await decrypt(msg.payload);
-      if(msg.msgType==="image") addImageMessage(text,"friend",msg.user,msg.time,true);
-      else addMessage(text,"friend",msg.user,msg.time,true);
-      playNotification();
-    } catch { console.warn("Message non déchiffrable"); }
-  };
-
-  /************* ENVOI MESSAGE *************/
-  form.addEventListener("submit", async e=>{
-    e.preventDefault();
-    if(!input.value.trim()) return;
-    sendMessage(input.value,"text");
-    input.value="";
-  });
-
-  imageInput.addEventListener("change", async e=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      await sendMessage(reader.result,"image");
-      imageInput.value="";
-    };
-    reader.readAsDataURL(file);
-  });
-
-  async function sendMessage(text,type){
-    const encrypted = await encrypt(text);
-    const message = {
-      sender: myId,
+      type: "msg",
       user: username,
-      time: Date.now(),
-      payload: encrypted,
-      msgType:type,
-      room:currentRoom,
-      type:"message"
-    };
-    if(ws.readyState === WebSocket.OPEN){
-      ws.send(JSON.stringify(message));
-      if(type==="image") addImageMessage(text,"me",username,message.time,true);
-      else addMessage(text,"me",username,message.time,true);
-    }
+      room,
+      messageId: msgId,
+      data: encMsg
+    }));
+    messageInput.value = "";
+  } else {
+    alert("Connexion WebSocket pas encore prête !");
+  }
+};
+
+// =========================
+// TYPING INDICATOR
+// =========================
+messageInput.oninput = () => {
+  if(ws.readyState === WebSocket.OPEN){
+    ws.send(JSON.stringify({ type: "typing", user: username, room }));
+  }
+};
+
+// =========================
+// RÉCEPTION DE MESSAGE
+// =========================
+ws.onmessage = async e => {
+  let data;
+  try { data = JSON.parse(e.data); } catch(err){ return; }
+  if(data.room !== room) return;
+
+  // Typing indicator
+  if(data.type === "typing"){
+    typingStatus.textContent = data.user + " écrit...";
+    setTimeout(()=> typingStatus.textContent = "", 1500);
+    return;
   }
 
-  /************* AJOUT AU DOM *************/
-  function addMessage(text,who,user,time,save){
-    const div = document.createElement("div");
-    div.className="msg "+who;
+  // Message normal
+  if(data.type === "msg"){
+    const text = await decrypt(data.data);
+
+    const row = document.createElement("div");
+    row.className = "message-row" + (data.user === username ? " me" : "");
+    row.dataset.id = data.messageId;
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = data.user.charAt(0).toUpperCase();
+
     const content = document.createElement("div");
-    content.textContent = text;
-    const meta = document.createElement("div");
-    meta.className="meta";
-    meta.textContent=`${user} • ${new Date(time).toLocaleTimeString()}`;
-    div.appendChild(content);
-    div.appendChild(meta);
-    messages.appendChild(div);
+    content.className = "message-content";
+
+    const userEl = document.createElement("div");
+    userEl.className = "message-user";
+    userEl.textContent = data.user;
+
+    const bubble = document.createElement("div");
+    bubble.className = "message" + (data.user === username ? " me" : "");
+    bubble.textContent = text;
+
+    content.appendChild(userEl);
+    content.appendChild(bubble);
+
+    row.appendChild(avatar);
+    row.appendChild(content);
+
+    messages.appendChild(row);
     messages.scrollTop = messages.scrollHeight;
-    if(save){
-      const history = JSON.parse(localStorage.getItem(historyKey)||"[]");
-      history.push({text,type:who==="me"?"text":"friend",user,time});
-      localStorage.setItem(historyKey,JSON.stringify(history));
+
+    // Avatars + reactions + messages éphémères
+    addReactions(row, data.messageId);
+    autoDeleteMessage(row, 10);
+
+    // Notification si ce n'est pas moi
+    if(data.user !== username) notifyUser();
+  }
+
+  // Réception des réactions
+  if(data.type === "reaction"){
+    const row = document.querySelector(`[data-id='${data.messageId}']`);
+    if(!row) return;
+
+    let existing = row.querySelector(".reactions span[data-user='"+data.user+"']");
+    if(!existing){
+      const span = document.createElement("span");
+      span.textContent = data.emoji;
+      span.dataset.user = data.user;
+      span.className = "reaction";
+      row.querySelector(".reactions").appendChild(span);
     }
+    notifyUser();
   }
+};
 
-  function addImageMessage(src,who,user,time){
-    const div = document.createElement("div");
-    div.className="msg "+who;
-    const img = document.createElement("img");
-    img.src = src;
-    img.style.maxWidth="200px";
-    img.style.borderRadius="12px";
-    const meta = document.createElement("div");
-    meta.className="meta";
-    meta.textContent=`${user} • ${new Date(time).toLocaleTimeString()}`;
-    div.appendChild(img);
-    div.appendChild(meta);
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-    const history = JSON.parse(localStorage.getItem(historyKey)||"[]");
-    history.push({text:src,type:"image",user,time});
-    localStorage.setItem(historyKey,JSON.stringify(history));
-  }
-
-  /************* NOTIFICATIONS *************/
-  function playNotification(){
-    const audio = new Audio("https://www.soundjay.com/button/beep-07.wav");
-    audio.play();
-  }
-
-  /************* AVATAR *************/
-  function generateAvatar(name){
-    const colors = ["😀","😎","💡","🎉","😂","😍","👍","😢"];
-    let hash = 0;
-    for(let i=0;i<name.length;i++) hash+=name.charCodeAt(i);
-    return colors[hash%colors.length];
-  }
-
-})();
+// =========================
+// LOGOUT
+// =========================
+function logout(){
+  localStorage.removeItem("neochat_session");
+  localStorage.removeItem("neochat_room");
+  location.href = "login.html";
+}

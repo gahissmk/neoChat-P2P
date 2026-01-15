@@ -2,62 +2,29 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Bienvenue sur NeoChat</title>
+<title>NeoChat</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="manifest" href="manifest.json">
 <script defer src="js/crypto.js"></script>
-<script defer src="js/emojis.js"></script>
 <script defer src="js/app.js"></script>
 <script defer src="js/pwa.js"></script>
 </head>
 <body>
-<div class="app">
-
-  <header class="header">
-    <span class="title">Bienvenue sur NeoChat Enfoiré - Salon : <span id="currentRoom">Salon privé</span></span>
-    <button onclick="toggleTheme()" class="btn-salon" id="themeToggle">🌙</button>
-  </header>
-
-  <div class="main-grid">
-
-    <aside class="sidebar">
-      <h2>Utilisateurs en ligne</h2>
-      <ul id="onlineUsers"></ul>
-      <h2>Salons privés</h2>
-      <ul id="roomList"></ul>
-      <button onclick="createPrivateRoom()" class="btn-salon">➕ Nouveau salon</button>
-    </aside>
-
-    <main class="chat">
-      <div class="messages" id="messages"></div>
-      <form id="chatForm">
-        <input id="messageInput" placeholder="Message chiffré E2E…">
-        <input type="file" id="imageInput" accept="image/*">
-        <button>➤</button>
-      </form>
-      <div id="emojiPicker"></div>
-    </main>
-
-  </div>
+<div class="app neon-grid">
+<aside class="sidebar neon">
+<h1>NeoChat</h1>
+<ul id="users"></ul>
+<button onclick="logout()">Déconnexion</button>
+</aside>
+<main class="chat">
+<header class="chat-header"><span id="currentUser"></span></header>
+<div class="messages" id="messages"></div>
+<div id="typingStatus" class="typing"></div>
+<form id="chatForm" class="chat-input">
+<input id="messageInput" placeholder="Message chiffré E2E…">
+<button>➤</button>
+</form>
+</main>
 </div>
-
-<script>
-function toggleTheme(){
-  document.body.classList.toggle("light-theme");
-}
-
-function createPrivateRoom(){
-  let name = prompt("Nom du salon privé :");
-  if(!name) return;
-  let allowedUsers = prompt("Liste des utilisateurs autorisés (pseudo séparés par ,) :");
-  if(!allowedUsers) return;
-  let rooms = JSON.parse(localStorage.getItem("neo_private_rooms")||"{}");
-  rooms[name] = allowedUsers.split(",").map(u=>u.trim());
-  localStorage.setItem("neo_private_rooms", JSON.stringify(rooms));
-  alert("Salon privé créé !");
-  location.reload();
-}
-</script>
-
 </body>
 </html>

@@ -2,50 +2,16 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Salons privés — NeoChat</title>
+<title>Salons — NeoChat</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="auth-body">
 <div class="auth-box neon">
-  <h1>Salons privés</h1>
-  <ul id="roomList"></ul>
-  <button onclick="createPrivateRoom()">➕ Créer un salon privé</button>
-  <button onclick="location.href='index.html'">Revenir au chat</button>
+<h1>NeoChat — Salons</h1>
+<input id="roomName" placeholder="Nom du salon privé">
+<button onclick="joinRoom()">Rejoindre / Créer salon</button>
+<a href="index.html">Retour au chat</a>
 </div>
-
-<script>
-const username = localStorage.getItem("neochat_user") || "Anonyme";
-const roomList = document.getElementById("roomList");
-const privateRooms = JSON.parse(localStorage.getItem("neo_private_rooms") || "{}");
-
-function updateRoomList(){
-  roomList.innerHTML = "";
-  Object.keys(privateRooms).forEach(r=>{
-    const li = document.createElement("li");
-    li.textContent = `${r} - utilisateurs : ${privateRooms[r].join(", ")}`;
-    li.onclick = () => {
-      if(!privateRooms[r].includes(username)){
-        alert("❌ Vous n'êtes pas autorisé à accéder à ce salon privé !");
-        return;
-      }
-      localStorage.setItem("neochat_room", r);
-      location.href="index.html";
-    };
-    roomList.appendChild(li);
-  });
-}
-
-function createPrivateRoom(){
-  let name = prompt("Nom du salon privé :");
-  if(!name) return;
-  let allowedUsers = prompt("Liste des utilisateurs autorisés (séparés par ,) :");
-  if(!allowedUsers) return;
-  privateRooms[name] = allowedUsers.split(",").map(u=>u.trim());
-  localStorage.setItem("neo_private_rooms", JSON.stringify(privateRooms));
-  updateRoomList();
-}
-
-updateRoomList();
-</script>
+<script src="js/app.js"></script>
 </body>
 </html>
