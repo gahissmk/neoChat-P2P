@@ -2,22 +2,15 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>NeoChat - Connexion</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion - NeoChat</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="auth">
-<div class="auth-box">
+
+<body class="center">
+<div class="box">
   <h1>NeoChat</h1>
-  <input id="username" placeholder="Ton pseudo">
-  <button onclick="go()">Entrer</button>
+  <input placeholder="Ton pseudo">
+  <a href="index.html">Entrer</a>
 </div>
-<script>
-function go(){
-  if(!username.value) return alert("Entre ton pseudo !");
-  localStorage.setItem("user",username.value);
-  location.href="index.html";
-}
-</script>
 </body>
 </html>

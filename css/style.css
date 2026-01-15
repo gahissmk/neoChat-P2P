@@ -1,21 +1,85 @@
-*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
-body{background:#f0f2f5;color:#111}
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+}
 
-/* LOGIN */
-.auth{display:flex;justify-content:center;align-items:center;height:100vh;background:#f0f2f5}
-.auth-box{background:white;padding:30px;border-radius:15px;box-shadow:0 4px 10px rgba(0,0,0,0.2);display:flex;flex-direction:column;gap:10px;text-align:center}
-.auth-box h1{color:#1877f2}
-.auth-box input{padding:10px;border-radius:20px;border:1px solid #ccc;width:200px}
-.auth-box button{padding:10px;border:none;border-radius:20px;background:#1877f2;color:white;cursor:pointer}
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-/* CHAT */
-.app{display:flex;flex-direction:column;height:100vh}
-header{padding:10px;display:flex;justify-content:space-between;background:#1877f2;color:white;font-weight:bold}
-.messages{flex:1;padding:10px;overflow-y:auto;background:#e5ddd5}
-.msg{margin-bottom:8px;padding:6px 10px;border-radius:12px;max-width:75%;word-wrap: break-word}
-.me{background:#dcf8c6;color:black;margin-left:auto}
-.other{background:#fff;color:black;margin-right:auto}
-.system{color:#555;font-style:italic;text-align:center}
-.chat-input{display:flex;padding:10px;border-top:1px solid #ccc}
-.chat-input input{flex:1;padding:10px;border-radius:20px;border:none}
-.chat-input button{background:#1877f2;border:none;padding:8px 12px;border-radius:20px;color:white;cursor:pointer}
+.box {
+  background: #020617;
+  padding: 30px;
+  border-radius: 12px;
+  width: 260px;
+  text-align: center;
+}
+
+.box input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.box a {
+  display: block;
+  background: #38bdf8;
+  color: black;
+  padding: 10px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+header {
+  padding: 15px;
+  background: #020617;
+  text-align: center;
+}
+
+#messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.msg {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 10px;
+  max-width: 70%;
+}
+
+.me {
+  background: #38bdf8;
+  color: black;
+  align-self: flex-end;
+}
+
+.friend {
+  background: #334155;
+}
+
+form {
+  display: flex;
+  padding: 10px;
+}
+
+input {
+  flex: 1;
+  padding: 10px;
+}
+
+button {
+  padding: 10px 15px;
+}

@@ -1,27 +1,35 @@
+const WS_URL = "wss://6181440f-5ca8-445f-bad1-acad2e5af390-00-2ldq1tnmxdf3h.worf.replit.dev";
+const ws = new WebSocket(WS_URL);
+
 const messages = document.getElementById("messages");
-const messageInput = document.getElementById("messageInput");
+const form = document.getElementById("chatForm");
+const input = document.getElementById("messageInput");
 
-if(!localStorage.getItem("user")) location.href="login.html";
+ws.onopen = () => {
+  console.log("✅ Connecté au serveur");
+};
 
-function addMessage(text,type){
-  const div = document.createElement("div");
-  div.className = "msg "+type;
-  div.innerHTML = `<b>${type==="me"?localStorage.getItem("user"):"Ami"}:</b> ${text}`;
-  messages.appendChild(div);
-  div.animate([{opacity:0, transform:"translateY(20px)"},{opacity:1, transform:"translateY(0)"}],{duration:300});
-  messages.scrollTop = messages.scrollHeight;
-}
+ws.onmessage = async (e) => {
+  const msg = JSON.parse(e.data);
+  const text = await decrypt(msg);
+  addMessage(text, "friend");
+};
 
-async function sendMessage(e){
+form.addEventListener("submit", async e => {
   e.preventDefault();
-  if(!messageInput.value) return;
-  const encrypted = await encryptMessage(messageInput.value);
-  sendChannel(encrypted);
-  addMessage(messageInput.value,"me");
-  messageInput.value="";
-}
+  if(!input.value.trim()) return;
 
-function logout(){
-  localStorage.clear();
-  location.href="login.html";
+  const encrypted = await encrypt(input.value);
+  ws.send(JSON.stringify(encrypted));
+
+  addMessage(input.value, "me");
+  input.value = "";
+});
+
+function addMessage(text, who){
+  const div = document.createElement("div");
+  div.className = "msg " + who;
+  div.textContent = text;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
 }

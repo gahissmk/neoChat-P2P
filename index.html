@@ -3,24 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <title>NeoChat</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
 <script defer src="js/crypto.js"></script>
-<script defer src="js/webrtc.js"></script>
 <script defer src="js/app.js"></script>
 <script defer src="js/pwa.js"></script>
 </head>
+
 <body>
 <div class="app">
-<header>
-  <h2>⚡ NeoChat</h2>
-  <button onclick="logout()">Quitter</button>
-</header>
-<div id="messages" class="messages"></div>
-<form onsubmit="sendMessage(event)" class="chat-input">
-  <input id="messageInput" placeholder="Message..." autocomplete="off">
-  <button>➤</button>
-</form>
+  <header>💬 NeoChat</header>
+
+  <div id="messages"></div>
+
+  <form id="chatForm">
+    <input id="messageInput" placeholder="Écris ton message…" autocomplete="off">
+    <button>➤</button>
+  </form>
 </div>
 </body>
 </html>
