@@ -1,7 +1,7 @@
 (async () => {
 
   /************* CONFIGURATION WS *************/
-  const WS_URL = "wss://TON_REPL_WS_URL"; // <--- Mets ton WebSocket ici
+  const WS_URL = "wss://6181440f-5ca8-445f-bad1-acad2e5af390-00-2ldq1tnmxdf3h.worf.replit.dev"; // <--- Mets ton WebSocket ici
   const ws = new WebSocket(WS_URL);
 
   /************* DOM *************/
