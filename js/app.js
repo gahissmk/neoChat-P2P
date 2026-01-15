@@ -7,10 +7,20 @@
   const form = document.getElementById("chatForm");
   const input = document.getElementById("messageInput");
 
+  // Identifiant unique
   const myId = crypto.randomUUID();
 
+  // Infos utilisateur
+  const username = prompt("Ton pseudo :") || "Anonyme";
   const roomCode = prompt("Code du salon (le même pour tous) :");
+
+  // Initialisation crypto avec code commun
   await initCryptoWithRoom(roomCode);
+
+  // Historique local
+  const historyKey = "neochat_history_" + roomCode;
+  const oldMessages = JSON.parse(localStorage.getItem(historyKey) || "[]");
+  oldMessages.forEach(m => addMessage(m.text, m.who, m.user, m.time, false));
 
   ws.onopen = () => {
     console.log("✅ WebSocket connecté");
@@ -27,11 +37,12 @@
       return;
     }
 
+    // Ignore ses propres messages
     if (msg.sender === myId) return;
 
     try {
       const text = await decrypt(msg.payload);
-      addMessage(text, "friend");
+      addMessage(text, "friend", msg.user, msg.time, true);
     } catch {
       console.warn("Message non déchiffrable");
     }
@@ -45,22 +56,39 @@
 
     const message = {
       sender: myId,
+      user: username,
+      time: Date.now(),
       payload: encrypted
     };
 
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify(message));
-      addMessage(input.value, "me");
+      addMessage(input.value, "me", username, message.time, true);
       input.value = "";
     }
   });
 
-  function addMessage(text, who) {
+  function addMessage(text, who, user, time, save) {
     const div = document.createElement("div");
     div.className = "msg " + who;
-    div.textContent = text;
+
+    const content = document.createElement("div");
+    content.textContent = text;
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = `${user} • ${new Date(time).toLocaleTimeString()}`;
+
+    div.appendChild(content);
+    div.appendChild(meta);
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+
+    if (save) {
+      const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      history.push({ text, who, user, time });
+      localStorage.setItem(historyKey, JSON.stringify(history));
+    }
   }
 
 })();
